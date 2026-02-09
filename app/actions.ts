@@ -52,9 +52,6 @@ export async function login(prevState: any, formData: FormData) {
             return { message: 'Account not approved yet' }
         }
 
-        // Role check for admin login could be done here or just let them in and check on the page
-        // The requirement says "Login must check... matches AND is_approved". Done.
-
         const session = await encrypt({ id: user.id, email: user.email, role: user.role })
 
             // Set cookie
@@ -78,31 +75,14 @@ export async function logout() {
     redirect('/')
 }
 
-export async function approveUser(userId: number) {
+export async function approveUser(formData: FormData) {
     const session = await getSession();
     if (!session || session.role !== 'admin') {
-        throw new Error('Unauthorized');
+        // throw new Error('Unauthorized');
+        return;
     }
 
-    await pool.query('UPDATE users SET is_approved = TRUE WHERE id = $1', [userId]);
-    revalidatePath('/admin')
-}
-
-// app/actions.ts
-
-import { revalidatePath } from 'next/cache';
-
-// ... (keep your existing login/signup functions above) ...
-
-export async function approveUser(formData: FormData) {
-    'use server'
-
-    // 1. Get the User ID from the form button
     const userId = formData.get('userId');
-
-    // 2. Update the database
     await pool.query('UPDATE users SET is_approved = TRUE WHERE id = $1', [userId]);
-
-    // 3. Refresh the Admin page so the UI updates immediately
     revalidatePath('/admin');
 }

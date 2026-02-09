@@ -2,31 +2,14 @@
 
 import pool from '@/lib/db';
 import { approveUser } from '../actions';
-import { cookies } from 'next/headers';
-import { jwtVerify } from 'jose';
+import { getSession } from '@/lib/auth';
 import { redirect } from 'next/navigation';
 
 export default async function AdminDashboard() {
     // --- SECURITY CHECK START ---
-    // 1. Get the token from the browser cookies
-    const cookieStore = cookies();
-    const token = cookieStore.get('token')?.value;
-
-    // 2. If no token, kick them out to login
-    if (!token) {
+    const session = await getSession();
+    if (!session || session.role !== 'admin') {
         redirect('/');
-    }
-
-    // 3. Verify the token is valid and checking the role
-    const secret = new TextEncoder().encode(process.env.JWT_SECRET);
-    try {
-        const { payload } = await jwtVerify(token, secret);
-        // If the user inside the token is NOT 'admin', show error
-        if (payload.role !== 'admin') {
-            return <div className="p-10 text-red-500">Error: Authorized Admins Only.</div>;
-        }
-    } catch (err) {
-        redirect('/'); // If token is fake/expired, kick them out
     }
     // --- SECURITY CHECK END ---
 
