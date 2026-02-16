@@ -1,6 +1,7 @@
 import pool from "@/lib/db";
 import DocumentUpload from "@/components/document-upload";
 import ChatInterface from "@/components/chat-interface";
+import { deleteDocument } from "./actions";
 import { Suspense } from "react";
 
 // Server Component (implicitly) to fetch documents
@@ -38,12 +39,20 @@ export default async function DocumentsPage({
                         <ul className="space-y-2">
                             {documents.map((doc) => (
                                 <li key={doc.id} className="border p-2 rounded hover:bg-gray-100 dark:hover:text-black">
-                                    <a href={`/dashboard/documents?docId=${doc.id}`} className="block">
-                                        {doc.filename}
-                                        <span className="text-xs text-gray-500 block">
-                                            {new Date(doc.created_at).toLocaleDateString()}
-                                        </span>
-                                    </a>
+                                    <div className="flex justify-between items-center group/item">
+                                        <a href={`/dashboard/documents?docId=${doc.id}`} className="block flex-1">
+                                            {doc.filename}
+                                            <span className="text-xs text-gray-500 block">
+                                                {new Date(doc.created_at).toLocaleDateString()}
+                                            </span>
+                                        </a>
+                                        <form action={deleteDocument}>
+                                            <input type="hidden" name="documentId" value={doc.id} />
+                                            <button type="submit" className="text-red-400 hover:text-red-600 p-2 opacity-0 group-hover/item:opacity-100 transition-opacity" title="Delete">
+                                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                                            </button>
+                                        </form>
+                                    </div>
                                 </li>
                             ))}
                             {documents.length === 0 && (
