@@ -4,7 +4,7 @@ import { logout } from '../actions'
 
 export default async function Dashboard() {
     const session = await getSession()
-    if (!session) redirect('/')
+    // Session check handled in layout.tsx
 
     if (session.role === 'admin') {
         redirect('/admin')
