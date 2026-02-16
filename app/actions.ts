@@ -79,7 +79,11 @@ export async function generateStudyNotes(formData: FormData) {
         } catch (e) {
             // Attempt 2: Fallback to Metadata (Title & Description)
             console.log("Transcript failed, falling back to metadata...");
-            const response = await fetch(videoUrl);
+            const response = await fetch(videoUrl, {
+                headers: {
+                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+                }
+            });
             const html = await response.text();
 
             const titleMatch = html.match(/<title>(.*?)<\/title>/);
