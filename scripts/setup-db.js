@@ -8,6 +8,9 @@ if (!process.env.DATABASE_URL) {
 
 const pool = new Pool({
     connectionString: process.env.DATABASE_URL,
+    ssl: {
+        rejectUnauthorized: false
+    }
 });
 
 async function main() {
@@ -20,6 +23,14 @@ async function main() {
         password VARCHAR(255) NOT NULL,
         role VARCHAR(50) DEFAULT 'user',
         is_approved BOOLEAN DEFAULT FALSE
+      );
+
+      CREATE TABLE IF NOT EXISTS documents (
+        id SERIAL PRIMARY KEY,
+        user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+        filename VARCHAR(255) NOT NULL,
+        content TEXT NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );
     `);
         console.log("Table 'users' created successfully.");

@@ -1,6 +1,6 @@
 'use client'
 
-import { useFormState } from 'react-dom'
+import { useActionState } from 'react'
 import { login, signup } from './actions'
 import { useState } from 'react'
 
@@ -10,7 +10,7 @@ const initialState = {
 
 export default function Home() {
   const [isLogin, setIsLogin] = useState(true)
-  const [state, formAction] = useFormState(isLogin ? login : signup, initialState)
+  const [state, formAction, isPending] = useActionState(isLogin ? login : signup, initialState)
 
   return (
     <main className="flex min-h-screen flex-col items-center justify-center p-24 bg-gray-900 text-white">
@@ -26,8 +26,12 @@ export default function Home() {
             <label className="block text-sm font-bold mb-2">Password</label>
             <input name="password" type="password" placeholder="Password" required className="w-full p-2 border rounded text-black" />
           </div>
-          <button type="submit" className="w-full bg-blue-500 text-white p-2 rounded hover:bg-blue-600 font-bold mt-4">
-            {isLogin ? 'Login' : 'Sign Up'}
+          <button
+            type="submit"
+            disabled={isPending}
+            className="w-full bg-blue-500 text-white p-2 rounded hover:bg-blue-600 font-bold mt-4 disabled:opacity-50"
+          >
+            {isPending ? 'Processing...' : (isLogin ? 'Login' : 'Sign Up')}
           </button>
           {state?.message && <p className="text-red-400 text-center mt-2 font-bold">{state.message}</p>}
         </form>
