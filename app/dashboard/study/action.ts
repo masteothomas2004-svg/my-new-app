@@ -56,7 +56,7 @@ export async function generateStudyNotes(videoUrl: string) {
 
         // 3. Call Gemini AI
         console.log("Calling Gemini API...")
-        const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash-latest' })
+        const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' })
 
         const prompt = `
       You are an expert tutor. Create clear, formatted study notes from this video content.
