@@ -68,14 +68,39 @@ export async function generateStudyNotes(formData: FormData) {
 
         if (!videoId) return { error: "Invalid YouTube URL" }
 
-        // Fetch Transcript
-        const transcriptItems = await YoutubeTranscript.fetchTranscript(videoId)
-        const transcriptText = transcriptItems.map(item => item.text).join(' ')
+        let sourceContent = "";
+        let contextType = "";
+
+        try {
+            // Attempt 1: Fetch Transcript
+            const transcriptItems = await YoutubeTranscript.fetchTranscript(videoId)
+            sourceContent = transcriptItems.map(item => item.text).join(' ')
+            contextType = "TRANSCRIPT";
+        } catch (e) {
+            // Attempt 2: Fallback to Metadata (Title & Description)
+            console.log("Transcript failed, falling back to metadata...");
+            const response = await fetch(videoUrl);
+            const html = await response.text();
+
+            const titleMatch = html.match(/<title>(.*?)<\/title>/);
+            const title = titleMatch ? titleMatch[1].replace(" - YouTube", "") : "Unknown Title";
+
+            const descMatch = html.match(/<meta name="description" content="(.*?)">/);
+            const description = descMatch ? descMatch[1] : "No description available.";
+
+            sourceContent = `Title: ${title}\n\nDescription: ${description}`;
+            contextType = "METADATA_ONLY";
+        }
 
         // Generate Notes with Gemini
         const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' })
         const prompt = `
-      You are an expert tutor. Create clear, formatted study notes from this video transcript.
+      You are an expert tutor. Create clear, formatted study notes from this video content.
+      
+      IMPORTANT: If the source is "METADATA_ONLY", the transcript was unavailable. 
+      In that case, generate the best possible notes from the description, but add a disclaimer at the top saying:
+      "> **Note:** Detailed transcript was unavailable. These notes are based on the video summary."
+
       Structure:
       1. 🎯 **Executive Summary**: 2 sentences max.
       2. 🔑 **Key Concepts**: Definitions of core terms.
@@ -83,7 +108,7 @@ export async function generateStudyNotes(formData: FormData) {
       4. 🧠 **Quiz**: 3 short questions to test understanding.
 
       Formatting: Use Markdown. Ignore filler words.
-      TRANSCRIPT: ${transcriptText.substring(0, 50000)}
+      SOURCE (${contextType}): ${sourceContent.substring(0, 50000)}
     `
 
         const result = await model.generateContent(prompt)
@@ -93,7 +118,7 @@ export async function generateStudyNotes(formData: FormData) {
 
     } catch (error) {
         console.error("AI Tool Error:", error)
-        return { error: "Could not generate notes. Video might lack captions." }
+        return { error: "Could not generate notes. Video might constitute of music or check the URL." }
     }
 }
 
